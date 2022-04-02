@@ -13,13 +13,13 @@ host = socket.gethostname() # Get local machine name
 port = 1248                # Default port
 ports = [1248,1249,1250,1251] # List of all used ports
 RunThreads=[True]
-verbose = False # Print extra debug data
+verbose = True # Print extra debug data
 verboseraw = False
 serverBlock = 0xA1
 netID = 0
 IDblackList=[]
 thrLock = Lock()
-SendDelay=5/1000 # Milliseconds
+SendDelay=20/1000 # Milliseconds
 objs = []
 
 if("--regen-id " in sys.argv or "-ri" in sys.argv):
@@ -84,25 +84,33 @@ def ConnectionHandler(lock, con,addr):
 							print("ACTION: Updating object tables")
 						newObj = objects.Object.arrayImport(data.data)
 						updated=False
+						print(objs)
 						for i in range(len(objs)): 
+							print(i,objs[i].ID,newObj.ID)
 							if(objs[i].ID == newObj.ID):
-								if verbose:
+								
+								if verbose or True:
 									print(f"Update to OBJ {c.BLUE}{hex(newObj.ID)}{c.END}")
 								updated = True
+								lock.acquire()
+								objs[i].update(newObj)
+								lock.release()
 						if(not updated):
 							lock.acquire()
 							objs.append(newObj)
 							lock.release()
-							if verbose:
+							if verbose or True:
 								print(f"Added OBJ {c.BLUE}{hex(newObj.ID)}{c.END} to table")
 					elif data.getAction() == "GETOBJS":
 						ack=False
 						for o in objs:
 							con.send(net.CNTP.con(o.arrayExport(),"UPDATE",clientID,netID))
-							while inet.waitForSignal(con,1024,1,"AFF") == 0:
-								time.sleep(SendDelay)
-								inet.send(con,net.CNTP.con(o.arrayExport(),"UPDATE",clientID,netID))
+							#while inet.waitForSignal(con,1024,1,"ACK") == 0:
 							time.sleep(SendDelay)
+								#inet.send(con,net.CNTP.con(o.arrayExport(),"UPDATE",clientID,netID))
+							if verbose:
+								net.printid(f'{c.CYAN}SEND: {c.PURPLE}UPDATE: {c.LIGHT_PURPLE}{o.arrayExport()}{c.END} to {c.BLUE}', data.origin)
+							#time.sleep(SendDelay)
 
 				elif data.protocol=="CNNC":
 					if data.data=="DISCON":
@@ -120,6 +128,8 @@ def ConnectionHandler(lock, con,addr):
 						con.close()
 						Run = False
 						break
+					if data.data=="ACK":
+						ack=False
 				if ack:
 					con.send(net.CNNC.con("ACK",data.origin,netID))
 					if verbose:

@@ -9,8 +9,8 @@ class Object: # Generic Object
 		self.PosZ=0
 		self.ID=random.getrandbits(3*8)
 		self.MapDisplay = False
-
-
+		self.Selected = False # Selected in graphics
+		self.Hover = False # Hover over in graphics
 		self.colour = (255,255,255)
 		self.sizeX = 10 # Pixels
 		self.sizeY = 10 # Pixels
@@ -19,16 +19,26 @@ class Object: # Generic Object
 		self.image = pygame.Surface((self.sizeX * self.scale, self.sizeY * self.scale))  # Create image (size)
 		self.image.fill(self.colour)
 
-	def radiusCheck(radius,pos1,pos2): # Radius in pixels, returns true if pos2 is within radius of pos1
-		distance = ((pos1[0] - pos[0])**2 + (pos1[1] - pos2[1])**2)**0.5
-		return distance>radius
+	def radiusCheck(self,radius,pos1,pos2): # Radius in pixels, returns true if pos2 is within radius of pos1
+		distance = ((pos1[0] - pos2[0])**2 + (pos1[1] - pos2[1])**2)**0.5
+		return distance<=radius
+
+	def update(self,obj):
+		self.Name = obj.Name
+		self.Label = obj.Label
+		self.PosX=obj.PosX
+		self.PosY=obj.PosY
+		self.PosZ=obj.PosZ
+		self.ID=obj.ID
+		self.MapDisplay = obj.MapDisplay
+
 
 
 	# radius check with automatically calculated radius based on size
-	def circleCheck(pos1,pos2): 
-		radius = 1.5(*((self.sizeX**2)+(self.sizeY**2))**0.5)
-		distance = ((pos1[0] - pos[0])**2 + (pos1[1] - pos2[1])**2)**0.5
-		return distance>radius
+	def circleCheck(self,pos1,pos2): 
+		radius = 1.1*(((self.sizeX**2)+(self.sizeY**2))**0.5)
+		distance = ((pos1[0] - pos2[0])**2 + (pos1[1] - pos2[1])**2)**0.5
+		return distance<=radius
 
 	def arrayExport(self):
 		Arr = []

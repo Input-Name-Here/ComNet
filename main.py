@@ -175,6 +175,7 @@ def networkRecvThreadFunc(lock, iC):
 						net.printid(f'{c.YELLOW}RECV: {c.PURPLE}{data.data}{c.END} from {c.BLUE}', data.origin)
 					if data.protocol=="CNTP":
 						if data.getAction() == "UPDATE":
+							print("yo")
 							if verbose:
 								print("ACTION: Updating object tables")
 							newObj = objects.Object.arrayImport(data.data)
@@ -183,6 +184,9 @@ def networkRecvThreadFunc(lock, iC):
 								if(netInObjs[i].ID == newObj.ID):
 									if verbose:
 										print(f"Update to OBJ {c.BLUE}{hex(newObj.ID)}{c.END}")
+									lock.acquire()
+									netInObjs[i].update(newObj)
+									lock.release()
 									updated = True
 							if(not updated):
 								lock.acquire()
@@ -199,6 +203,8 @@ def networkRecvThreadFunc(lock, iC):
 							ack=False
 						if data.data=="CUTOFF":
 							print(f"NetworkTick: {c.YELLOW}ERROR: NOT IMPLEMENTED{c.END}          ")
+							ack=False
+						if data.data=="ACK":
 							ack=False
 					if ack:
 						iC.send(net.CNNC.con("ACK",data.origin,netID))
@@ -228,6 +234,7 @@ def networkTickThreadFunc(lock, iC):
 					counter+=1
 					iC.send(net.CNTP.con(o.arrayExport(),"UPDATE",serverID,netID))
 					#iC.waitForSignal(1024,1,"ACK")
+					time.sleep(1/30)
 					iC.send(net.CNTP.con([],"GETOBJS",serverID,netID))
 				#print(f"Server sent {counter} object updates",end="\r")
 				time.sleep(1/30)
