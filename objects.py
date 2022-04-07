@@ -1,9 +1,11 @@
-import pygame 
+import svgimg as svg
 import random
 class Object: # Generic Object
 	def __init__(self):
 		self.Name = ""
 		self.Label = ""
+		self.fullTimeout = 10 # Remove the object from the database
+		self.partTimeout = 1 # update the object as being timed out
 		self.PosX=0
 		self.PosY=0
 		self.PosZ=0
@@ -15,9 +17,14 @@ class Object: # Generic Object
 		self.sizeX = 10 # Pixels
 		self.sizeY = 10 # Pixels
 		self.scale = 1 # Size Scalar
-		self.rect = pygame.Rect((0, 0), (self.sizeX * self.scale, self.sizeY * self.scale))  # Create Rect (pos, size)
-		self.image = pygame.Surface((self.sizeX * self.scale, self.sizeY * self.scale))  # Create image (size)
-		self.image.fill(self.colour)
+		self.icon = svg.image() # Vector image to be used as icon
+		self.scrnpos=(0,0) # position on the screen
+
+	def updateIcon(self,fn):
+		try:
+			self.icon.construct(fn)
+		except Exception as e:
+			print("OBJECTS.PY: Error in icon construction!",e)
 
 	def radiusCheck(self,radius,pos1,pos2): # Radius in pixels, returns true if pos2 is within radius of pos1
 		distance = ((pos1[0] - pos2[0])**2 + (pos1[1] - pos2[1])**2)**0.5
@@ -85,7 +92,3 @@ class MapObject:
 		self.sizeX = 10 # Pixels
 		self.sizeY = 10 # Pixels
 		self.scale = 1 # Size Scalar
-		self.rect = pygame.Rect((0, 0), (self.sizeX * self.scale, self.sizeY * self.scale))  # Create Rect (pos, size)
-		self.image = pygame.Surface((self.sizeX * self.scale, self.sizeY * self.scale))  # Create image (size)
-		self.image.fill(self.colour)
-		

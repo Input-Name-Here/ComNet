@@ -1,3 +1,12 @@
+
+
+'''
+INFORMATION:
+Arguments:
+	--regen-id / -ri : Use a custom ID
+	--no-write-id / -nwi : Do not write ID to disk  
+'''
+
 import network as net
 import random
 import inet
@@ -9,20 +18,21 @@ import colours as c
 import graphics
 import random
 from threading import Thread, Lock
+import sys
+  
+# Add configuration folder to system path 
+sys.path.insert(0, 'config')
 
-'''
-INFORMATION:
-Arguments:
-	--regen-id / -ri : Use a custom ID
-	--no-write-id / -nwi : Do not write ID to disk  
-'''
+import filesconf as fc # File Configuration
+import networkconf as nc # Network Configuration
+
 
 
 
 print(f"Main: {c.GREEN}START{c.END}")
 print("-=-=- Setup -=-=-")
-port = 1248 # Default port
-ports = [1248,1249,1250,1251] # Alternative ports list
+port = nc.port # Default port
+ports = nc.ports # Alternative ports list
 
 verbose = False
 IDblackList = [] # List of known IDs to not use 
@@ -35,25 +45,26 @@ timeouts = 5 # Number of extra connections before stopping
 timeoutdelay = 0.1 # Connection attempt delay
 
 
+
 if("--regen-id " in sys.argv or "-ri" in sys.argv):
 	print("Regenerating ID")
 	while netID == 0 or netID in IDblackList:
 		netID = (clientBlock<<24)+(random.getrandbits(3*8))
 	if not ("--no-write-id " in sys.argv or "-nwi" in sys.argv):
-		with open("clientid.txt", "w") as f:
+		with open(fc.clientidFILE, "w") as f:
 			f.write( hex(netID) )
 		print("Client ID written to disk")
 else:
 	try:
 		print("Using historic ID")
-		with open("clientid.txt", "r") as f:
+		with open(fc.clientidFILE, "r") as f:
 			netID = int(f.read(),0)
 	except:
 		print("No ID found, generating...")
 		while netID == 0 or netID in IDblackList:
 			netID = (clientBlock<<24)+(random.getrandbits(3*8))
 		if not ("--no-write-id " in sys.argv or "-nwi" in sys.argv):
-			with open("clientid.txt", "w") as f:
+			with open(fc.clientidFILE, "w") as f:
 				f.write( hex(netID) )
 			print("Client ID written to disk")
 
@@ -131,20 +142,21 @@ thrLock = Lock()
 
 print("-=-=- End of setup -=-=-")
 
-
-#net.CNTP.con()
-
-sex = objects.Object()
-sex.PosX=random.randint(-100,100)
-sex.PosY=random.randint(-100,100)
-sex.Name = "sex"
-sex.Label = "SuperSexy"
-sex.MapDisplay= True
-netOutObjs=[sex]
+netOutObjs=[]
 netInObjs=[]
-Map = graphics.MapWindow(512,512,netInObjs)
-Map.AddObject(sex)
-
+Map = graphics.MapWindow(1080,1920,netInObjs)
+#net.CNTP.con()
+for i in range(0,10):
+	sex = objects.Object()
+	sex.updateIcon("data/svg/default.svg")
+	sex.PosX=random.randint(-100,100)
+	sex.PosY=random.randint(-100,100)
+	sex.Name = "sex"
+	sex.Label = "SuperSexy"
+	sex.MapDisplay= True
+	netOutObjs.append(sex)
+	
+	Map.AddObject(sex)
 RunThreads = [True] # Uses list so it can be passed to threads
                     # Boolean get passed by value, not reference. 
 
